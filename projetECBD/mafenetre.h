@@ -1,16 +1,21 @@
+#include <QMainWindow>
 #include <QWidget>
 #include <QLabel>
 #include <QPushButton>
-class mafenetre : public QWidget
+#include <QString>
+#include <QComboBox>
+
+class MaFenetre : public QMainWindow
 {
     Q_OBJECT
 public slots :
-    void setQuitter();
+void setQuitter();
+void setCouleur();
 public :
-    mafenetre();
+MaFenetre(QWidget *parent = 0);
 private :
-    QLabel *m_lab;
-    QPushButton *m_bou;
+QLabel *m_lab, *m_tra;
+QPushButton *m_bou;
+QComboBox *m_com;
+QString couleur;
 };
-
-
