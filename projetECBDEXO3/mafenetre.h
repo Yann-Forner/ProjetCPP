@@ -9,6 +9,7 @@
 #include <iostream>
 #include <QString>
 #include <cstdlib>
+#include <QTableWidget>
 #include "charger_csv.h"
 
 
@@ -20,8 +21,10 @@ public slots :
     void setQuitter();
     void prediction();
     double frequence(string maladie);
-    void conf();
-
+    double conf(string symptome,string maladie,string valSymptome,double freq);
+    int findCol(string symptome);
+    vector <string> getMaladies();
+    bool isPresent(string str ,  vector<string> VStr);
 public :
     MaFenetre(QWidget *parent = 0);
 private :
@@ -32,5 +35,5 @@ private :
     QString couleur;
     CVString m_vet;
     CMatString m_mat;
-
+    QTableWidget *m_tab;
 };

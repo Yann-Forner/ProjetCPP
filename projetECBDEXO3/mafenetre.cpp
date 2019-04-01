@@ -4,7 +4,6 @@ MaFenetre::MaFenetre(QWidget *parent) : QMainWindow(parent)
 
     read_csv (m_mat, m_vet, "data.csv");
 
-
     setFixedSize(800,600);
     m_bou = new QPushButton("Quitter", this);
 
@@ -72,8 +71,20 @@ MaFenetre::MaFenetre(QWidget *parent) : QMainWindow(parent)
     m_bouPredict->setGeometry(600,225,80,40);
 
     //labelScore
-    m_labScore = new QLabel("fze",this);
+    m_labScore = new QLabel("",this);
+    m_labScore->setGeometry(0,0,200,50);
 
+    //Table
+    m_tab = new QTableWidget(m_mat.size(),m_mat[0].size(),this);
+    m_tab->setGeometry(200,300,400,300);
+
+    for (unsigned i=0;i<m_mat.size();++i) {
+        for (unsigned j=0 ;j<m_mat[0].size();++j) {
+            m_tab->setItem(i,j,new QTableWidgetItem(QString::fromStdString(m_mat[i][j])));
+
+        }
+
+    }
 
     m_bou->setGeometry(700,550,80,40);
 
@@ -93,23 +104,72 @@ void MaFenetre::prediction()
     string resultC1= m_1erAttrCombo->currentText().toStdString();
     string resultC2=m_com->currentText().toStdString();
     string resultC3=m_3emeAttrCombo->currentText().toStdString();
-    vector <string> maladie;
-//    std::cout << frequence("Rhume");
-    QString str = QString::fromStdString(to_string(frequence("Appendicite")));
+    CVString maladies= getMaladies();
+
+    vector <double> Score={0.0,-1.0};
+    for (double i=0;i<maladies.size();++i) {
+        double freq = frequence(maladies[i]);
+        vector <double> scoreTemp ={freq
+                                    *conf("Fievre",maladies[i],resultC1,freq)
+                                    *conf("Douleur",maladies[i],resultC2,freq)
+                                    *conf("Toux",maladies[i],resultC3,freq),i};
+        if(scoreTemp[0]>Score[0]){
+            Score=scoreTemp;
+        }else if(scoreTemp[0]==Score[0]){
+            Score.push_back(scoreTemp[1]);
+        }
+    }
+    QString str;
+    if(Score.size()>2){
+        str = QString::fromStdString(maladies[Score[1]] +" ou "+ maladies[Score[2]]);
+    }else {
+        str = QString::fromStdString(maladies[Score[1]]);
+    }
+    if(Score[0] == 0.0)str = QString::fromStdString("rien n'a été trouvé dans la base");
     m_labScore->setText(str);
 
 }
 
 double MaFenetre::frequence(string maladie){
     double compteur = 0;
-    for (unsigned i=0; i<9;++i) {
+    for (unsigned i=0; i<m_mat.size();++i) {
         if(m_mat[i][3] == maladie)++compteur;
     }
-    return compteur/9;
+    return compteur/m_mat.size();
 }
 
-void MaFenetre::conf(){
+double MaFenetre::conf(string symptome,string maladie,string valSymptome, double freq){
+    if(valSymptome=="NULL")return 1.0;
+    double compteur=0;
+    int col = findCol(symptome);
+    for (unsigned i = 0; i<m_mat.size() ; ++i) {
+        if(maladie == m_mat[i][3] && valSymptome == m_mat[i][col]){
+            ++compteur;
+        }
+    }
+    return (compteur/m_mat.size())/freq;
+}
 
+int MaFenetre::findCol(string symptome){
+    for (unsigned i=0;i<m_vet.size();++i) {
+        if(symptome == m_vet[i])return i;
+    }
+    return -1;
+}
+
+vector <string> MaFenetre::getMaladies(){
+    vector <string> maladies;
+    for (unsigned i=0;i<m_mat.size();++i) {
+        if(!isPresent(m_mat[i][3],maladies))maladies.push_back(m_mat[i][3]);
+    }
+    return maladies;
+}
+
+bool MaFenetre::isPresent(string str, vector <string> VStr){
+    for (unsigned i=0;i<VStr.size() ;++i) {
+        if(VStr[i]==str)return true;
+    }
+    return false;
 }
 
 
